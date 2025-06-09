@@ -1,7 +1,7 @@
 [phases.install]
-# Устанавливаем зависимости для бэкенда
+# Устанавливаем ВСЕ зависимости для сборки админ панели
 cmds = [
-  'npm ci --only=production'
+  'npm ci'
 ]
 
 [phases.build]
@@ -9,6 +9,12 @@ cmds = [
 cmds = [
   'npx prisma generate',
   'npm run build'
+]
+
+[phases.prune]
+# После сборки удаляем dev зависимости для уменьшения размера
+cmds = [
+  'npm prune --production'
 ]
 
 [start]
