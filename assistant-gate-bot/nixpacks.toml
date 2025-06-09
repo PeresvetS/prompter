@@ -4,5 +4,12 @@ cmds = [
   'npm ci --only=production'
 ]
 
+[phases.build]
+# Генерируем Prisma client и собираем приложение во время сборки
+cmds = [
+  'npx prisma generate',
+  'npm run build'
+]
+
 [start]
-cmd = 'npm run deploy' 
+cmd = 'npm run start:railway' 
