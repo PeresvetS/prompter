@@ -1,23 +1,23 @@
-import axios from "axios";
+import axios from 'axios';
 
 /**
  * Получаем базовый URL API из переменных окружения
  * Fallback на localhost для локальной разработки если переменная не задана
  */
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/admin";
+  import.meta.env.VITE_API_BASE_URL || window.location.origin + '/admin';
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("admin_token");
+  const token = localStorage.getItem('admin_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -29,11 +29,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("admin_token");
-      window.location.href = "/";
+      localStorage.removeItem('admin_token');
+      window.location.href = '/';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export interface User {
@@ -69,20 +69,20 @@ export interface LoginResponse {
 
 class AdminAPI {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post("/login", credentials);
+    const response = await api.post('/login', credentials);
     const { access_token } = response.data;
-    localStorage.setItem("admin_token", access_token);
+    localStorage.setItem('admin_token', access_token);
     return { token: access_token, expiresIn: 86400 };
   }
 
-  async getUsers(page = 1, limit = 10, search = ""): Promise<UserListResponse> {
+  async getUsers(page = 1, limit = 10, search = ''): Promise<UserListResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
 
     if (search) {
-      params.append("search", search);
+      params.append('search', search);
     }
 
     const response = await api.get(`/users?${params}`);
@@ -102,11 +102,11 @@ class AdminAPI {
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem("admin_token");
+    return !!localStorage.getItem('admin_token');
   }
 
   logout(): void {
-    localStorage.removeItem("admin_token");
+    localStorage.removeItem('admin_token');
   }
 }
 
