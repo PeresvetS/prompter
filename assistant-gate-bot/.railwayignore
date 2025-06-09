@@ -1,36 +1,11 @@
-# Dependencies
-node_modules/
-admin-panel/node_modules/
-
-# Build artifacts
-admin-panel/dist/
-dist/
-
-# Development files
+# Только самое необходимое для Railway
 .env.local
 .env.development
 .env.test
-
-# IDE files
 .vscode/
 .idea/
-
-# OS files
 .DS_Store
-Thumbs.db
-
-# Git
 .git/
-.gitignore
-
-# Documentation
-README.md
-*.md
-
-# Test files
-test/
+coverage/
 *.test.ts
-*.spec.ts
-
-# Coverage reports
-coverage/ 
+*.spec.ts 
