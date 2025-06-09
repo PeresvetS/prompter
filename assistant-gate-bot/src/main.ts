@@ -16,130 +16,152 @@ dotenv.config();
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  // Trust proxy for Railway (behind reverse proxy)
-  app.set('trust proxy', 1);
-
-  // Get services for security validation
-  const customLogger = app.get(CustomLoggerService);
-  const securityService = app.get(SecurityService);
-
-  // Validate security configuration
-  const securityWarnings = securityService.validateSecurityConfig();
-  if (securityWarnings.length > 0) {
-    customLogger.warn('Security configuration warnings:', 'Security');
-    securityWarnings.forEach((warning) =>
-      customLogger.warn(warning, 'Security'),
+  try {
+    // Enhanced startup logging
+    logger.log(`🔧 Starting application bootstrap...`);
+    logger.log(`📦 Node Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`🌐 Port: ${process.env.PORT || 3000}`);
+    logger.log(
+      `💾 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`,
     );
-  }
+    logger.log(
+      `🤖 Telegram Bot: ${process.env.TELEGRAM_BOT_TOKEN ? 'Configured' : 'Not configured'}`,
+    );
+    logger.log(
+      `🧠 OpenAI: ${process.env.OPENAI_API_KEY ? 'Configured' : 'Not configured'}`,
+    );
+    logger.log(
+      `🔐 JWT Secret: ${process.env.JWT_SECRET ? `${process.env.JWT_SECRET.length} chars` : 'Not configured'}`,
+    );
 
-  // Security headers
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", 'data:', 'https:'],
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+    // Trust proxy for Railway (behind reverse proxy)
+    app.set('trust proxy', 1);
+
+    // Get services for security validation
+    const customLogger = app.get(CustomLoggerService);
+    const securityService = app.get(SecurityService);
+
+    // Validate security configuration
+    const securityWarnings = securityService.validateSecurityConfig();
+    if (securityWarnings.length > 0) {
+      customLogger.warn('Security configuration warnings:', 'Security');
+      securityWarnings.forEach((warning) =>
+        customLogger.warn(warning, 'Security'),
+      );
+    }
+
+    // Security headers
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+          },
         },
-      },
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true,
-      },
-    }),
-  );
+        hsts: {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        },
+      }),
+    );
 
-  // Rate limiting
-  app.use(
-    '/admin',
-    rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // Limit each IP to 100 requests per windowMs
-      message: 'Too many requests from this IP, please try again later.',
-      standardHeaders: true,
-      legacyHeaders: false,
-    }),
-  );
+    // Rate limiting
+    app.use(
+      '/admin',
+      rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // Limit each IP to 100 requests per windowMs
+        message: 'Too many requests from this IP, please try again later.',
+        standardHeaders: true,
+        legacyHeaders: false,
+      }),
+    );
 
-  app.use(
-    '/telegram',
-    rateLimit({
-      windowMs: 1 * 60 * 1000, // 1 minute
-      max: 60, // Limit each IP to 60 requests per minute
-      message: 'Too many requests from this IP, please try again later.',
-      standardHeaders: true,
-      legacyHeaders: false,
-    }),
-  );
+    app.use(
+      '/telegram',
+      rateLimit({
+        windowMs: 1 * 60 * 1000, // 1 minute
+        max: 60, // Limit each IP to 60 requests per minute
+        message: 'Too many requests from this IP, please try again later.',
+        standardHeaders: true,
+        legacyHeaders: false,
+      }),
+    );
 
-  // Global rate limiting
-  app.use(
-    rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 1000, // Limit each IP to 1000 requests per windowMs
-      message: 'Too many requests from this IP, please try again later.',
-      standardHeaders: true,
-      legacyHeaders: false,
-    }),
-  );
+    // Global rate limiting
+    app.use(
+      rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 1000, // Limit each IP to 1000 requests per windowMs
+        message: 'Too many requests from this IP, please try again later.',
+        standardHeaders: true,
+        legacyHeaders: false,
+      }),
+    );
 
-  // Enable CORS for admin panel
-  app.enableCors({
-    origin: true,
-    credentials: true,
-  });
+    // Enable CORS for admin panel
+    app.enableCors({
+      origin: true,
+      credentials: true,
+    });
 
-  // Serve static files for admin panel
-  app.useStaticAssets(join(__dirname, '..', 'public', 'admin'), {
-    prefix: '/admin/assets/',
-  });
+    // Serve static files for admin panel
+    app.useStaticAssets(join(__dirname, '..', 'public', 'admin'), {
+      prefix: '/admin/assets/',
+    });
 
-  // Enable validation pipes with security settings
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      disableErrorMessages: process.env.NODE_ENV === 'production',
-    }),
-  );
+    // Enable validation pipes with security settings
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        disableErrorMessages: process.env.NODE_ENV === 'production',
+      }),
+    );
 
-  // SPA fallback middleware for admin panel
-  app.use(/^\/admin\/(?!users|login|stats|health|assets).*/, (req, res) => {
-    // Serve index.html for all admin routes except API endpoints and assets
-    res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
-  });
+    // SPA fallback middleware for admin panel
+    app.use(/^\/admin\/(?!users|login|stats|health|assets).*/, (req, res) => {
+      // Serve index.html for all admin routes except API endpoints and assets
+      res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
+    });
 
-  const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 3000;
 
-  // Enhanced startup logging
-  logger.log(`🔧 Starting application...`);
-  logger.log(`📦 Node Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.log(`🌐 Port: ${port}`);
+    // Enhanced startup logging
+    logger.log(`🔧 Starting application...`);
+    logger.log(`📦 Node Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`🌐 Port: ${port}`);
 
-  await app.listen(port, '0.0.0.0');
+    await app.listen(port, '0.0.0.0');
 
-  logger.log(`🚀 Application is running on: http://0.0.0.0:${port}`);
-  logger.log(`📊 Admin panel available at: http://0.0.0.0:${port}/admin/`);
-  logger.log(`❤️  Health check available at: http://0.0.0.0:${port}/health`);
-  logger.log(
-    `🔒 Security features enabled: Helmet, Rate Limiting, Input Validation`,
-    'Bootstrap',
-  );
+    logger.log(`🚀 Application is running on: http://0.0.0.0:${port}`);
+    logger.log(`📊 Admin panel available at: http://0.0.0.0:${port}/admin/`);
+    logger.log(`❤️  Health check available at: http://0.0.0.0:${port}/health`);
+    logger.log(
+      `🔒 Security features enabled: Helmet, Rate Limiting, Input Validation`,
+      'Bootstrap',
+    );
 
-  if (process.env.NODE_ENV === 'production') {
-    logger.log(`🌐 Production mode: Enhanced security enabled`, 'Bootstrap');
+    if (process.env.NODE_ENV === 'production') {
+      logger.log(`🌐 Production mode: Enhanced security enabled`, 'Bootstrap');
+    }
+
+    // Log environment validation results
+    logger.log(`✅ Application startup completed successfully`, 'Bootstrap');
+  } catch (error) {
+    logger.error('❌ Failed to start the application:', error);
+    process.exit(1);
   }
-
-  // Log environment validation results
-  logger.log(`✅ Application startup completed successfully`, 'Bootstrap');
 }
 
 bootstrap().catch((error) => {
-  console.error('❌ Failed to start the application:', error);
+  console.error('❌ Bootstrap function failed:', error);
   process.exit(1);
 });
