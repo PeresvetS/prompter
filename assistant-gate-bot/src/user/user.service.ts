@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
+import * as crypto from 'crypto';
 
 export interface TelegramUser {
   id: number;

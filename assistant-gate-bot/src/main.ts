@@ -9,21 +9,12 @@ import { CustomLoggerService } from './common/logger.service';
 import { SecurityService } from './common/security.service';
 import { Logger } from '@nestjs/common';
 import * as dotenv from 'dotenv';
-import * as crypto from 'crypto';
-
-// Ensure crypto is available globally for @nestjs/schedule
-(global as any).crypto = crypto;
 
 // Load environment variables
 dotenv.config();
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-
-  // Debug: Check crypto availability
-  logger.log(`Node.js version: ${process.version}`);
-  logger.log(`Crypto module available: ${!!crypto}`);
-  logger.log(`Global crypto: ${!!global.crypto}`);
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
