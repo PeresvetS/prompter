@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { adminAPI, User, UserListResponse } from '../api';
 
 interface DashboardProps {
@@ -45,7 +45,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
     loadUsers();
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
     loadUsers(1, search);

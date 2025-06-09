@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Login } from "./components/Login";
-import { Dashboard } from "./components/Dashboard";
-import { adminAPI } from "./api";
+import { useState, useEffect } from 'react';
+import { Login } from './components/Login';
+import { Dashboard } from './components/Dashboard';
+import { adminAPI } from './api';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,10 +26,10 @@ function App() {
     return (
       <div
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
         }}
       >
         Loading...
