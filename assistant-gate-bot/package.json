@@ -26,8 +26,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "postinstall": "prisma generate",
-    "deploy": "prisma db push && npm run build && npm run start:prod"
+    "deploy": "prisma generate && prisma db push && npm run build && npm run start:prod"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.3",
