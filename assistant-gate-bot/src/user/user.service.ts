@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
-import * as crypto from 'crypto';
 
 export interface TelegramUser {
   id: number;
@@ -434,19 +432,8 @@ export class UserService {
     }
   }
 
-  // Reset daily counters at midnight UTC
-  @Cron('0 0 * * *', { timeZone: 'UTC' })
-  async resetDailyLimits(): Promise<void> {
-    try {
-      const result = await this.prisma.user.updateMany({
-        data: { dailyRequests: 0 },
-      });
-
-      this.logger.log(`✅ Daily limits reset for ${result.count} users`);
-    } catch (error) {
-      this.logger.error('❌ Error resetting daily limits:', error);
-    }
-  }
+  // Note: Daily limits are reset lazily in checkDailyLimit() method
+  // No cron job needed - more efficient and reliable
 
   // Get all users for admin panel with pagination
   async getAllUsers(options?: {

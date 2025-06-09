@@ -37,7 +37,6 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.3",
-    "@nestjs/schedule": "^6.0.0",
     "@prisma/client": "^6.9.0",
     "@types/node-telegram-bot-api": "^0.64.9",
     "bcryptjs": "^3.0.2",
