@@ -18,6 +18,9 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // Trust proxy for Railway (behind reverse proxy)
+  app.set('trust proxy', 1);
+
   // Get services for security validation
   const customLogger = app.get(CustomLoggerService);
   const securityService = app.get(SecurityService);
