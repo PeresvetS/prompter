@@ -35,36 +35,50 @@ export class CustomLoggerService implements LoggerService {
       ],
     });
 
-    // Add file transports for production
-    if (process.env.NODE_ENV === 'production') {
-      // Error logs
-      this.logger.add(
-        new DailyRotateFile({
-          filename: 'logs/error-%DATE%.log',
-          datePattern: 'YYYY-MM-DD',
-          level: 'error',
-          maxSize: '20m',
-          maxFiles: '14d',
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json(),
-          ),
-        }),
-      );
+    // Add file transports only if explicitly enabled and not in Railway
+    const enableFileLogging =
+      process.env.LOG_TO_FILE === 'true' && !process.env.RAILWAY_ENVIRONMENT;
 
-      // Combined logs
-      this.logger.add(
-        new DailyRotateFile({
-          filename: 'logs/combined-%DATE%.log',
-          datePattern: 'YYYY-MM-DD',
-          maxSize: '20m',
-          maxFiles: '7d',
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json(),
-          ),
-        }),
-      );
+    if (enableFileLogging) {
+      try {
+        // Error logs
+        this.logger.add(
+          new DailyRotateFile({
+            filename: 'logs/error-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            level: 'error',
+            maxSize: '20m',
+            maxFiles: '14d',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.json(),
+            ),
+          }),
+        );
+
+        // Combined logs
+        this.logger.add(
+          new DailyRotateFile({
+            filename: 'logs/combined-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            maxSize: '20m',
+            maxFiles: '7d',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.json(),
+            ),
+          }),
+        );
+
+        console.log('📝 File logging enabled');
+      } catch (error) {
+        console.warn(
+          '⚠️ File logging failed, using console only:',
+          error.message,
+        );
+      }
+    } else {
+      console.log('📝 Using console logging only (Railway/production mode)');
     }
   }
 
