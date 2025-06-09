@@ -1,0 +1,4 @@
+admin-panel/**/*
+public/**/*
+*.tsx
+*.jsx 

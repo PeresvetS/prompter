@@ -1,0 +1,30 @@
+import { ConfigService } from '@nestjs/config';
+import { UserService } from '../user/user.service';
+import { OpenAIService } from '../openai/openai.service';
+import { SubscriptionService } from '../subscription/subscription.service';
+export declare class TelegramService {
+    private configService;
+    private userService;
+    private openaiService;
+    private subscriptionService;
+    private readonly logger;
+    private bot;
+    constructor(configService: ConfigService, userService: UserService, openaiService: OpenAIService, subscriptionService: SubscriptionService);
+    private setupPollingHandlers;
+    private getMainChannelnChannelConfig;
+    private getSecondChannelChannelConfig;
+    handleUpdate(update: any): Promise<void>;
+    private handleMessage;
+    sendWelcomeMessageWithButtons(chatId: number): Promise<void>;
+    sendSuccessMessage(chatId: number, isFirstTime: boolean | undefined, userId: number): Promise<void>;
+    sendUnsubscribedMessage(chatId: number): Promise<void>;
+    sendSubscriptionSuccessMessage(chatId: number, userId: number): Promise<void>;
+    sendMessage(chatId: number, text: string, options?: any): Promise<void>;
+    sendChatAction(chatId: number, action: any): Promise<void>;
+    setWebhook(url: string): Promise<boolean>;
+    getWebhookInfo(): Promise<any>;
+    private handleCallbackQuery;
+    private handleSubscriptionCheck;
+    private sendSubscriptionErrorMessage;
+    private transcribeVoiceMessage;
+}

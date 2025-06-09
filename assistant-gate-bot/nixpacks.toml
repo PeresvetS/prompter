@@ -1,0 +1,25 @@
+[phases.build]
+# Устанавливаем Node.js 18
+cmds = [
+  'curl -fsSL https://deb.nodesource.com/setup_18.x | bash -',
+  'apt-get install -y nodejs',
+  'node --version',
+  'npm --version'
+]
+
+[phases.install]
+# Устанавливаем зависимости для бэкенда
+cmds = [
+  'npm ci --only=production',
+  'npx prisma generate'
+]
+
+[phases.setup]
+# Собираем админ панель и бэкенд
+cmds = [
+  'npm run build:admin',
+  'npm run build:backend'
+]
+
+[start]
+cmd = 'npm run deploy' 

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: assistant_gate_bot_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: assistant_gate_bot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - assistant_bot_network
+
+  # NestJS Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: assistant_gate_bot_app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/assistant_gate_bot?schema=public
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    networks:
+      - assistant_bot_network
+    volumes:
+      - ./logs:/app/logs
+
+  # Development environment (alternative to production app)
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: assistant_gate_bot_dev
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/assistant_gate_bot?schema=public
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    networks:
+      - assistant_bot_network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    command: npm run start:dev
+    profiles:
+      - dev
+
+networks:
+  assistant_bot_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
