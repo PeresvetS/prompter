@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npm run build:admin && npm run build:backend",
-    "build:admin": "cd admin-panel && npm ci --no-audit --no-fund && npm run build",
+    "build:admin": "cd admin-panel && npm ci --no-audit --no-fund && VITE_API_BASE_URL=/admin npm run build",
     "build:backend": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",

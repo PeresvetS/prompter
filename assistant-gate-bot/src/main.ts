@@ -34,15 +34,17 @@ async function bootstrap() {
     );
   }
 
-  // Security headers
+  // Security headers с поддержкой админ-панели
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"], // Для Vite/React
+          scriptSrc: ["'self'", "'unsafe-inline'"], // Для Vite в development
           imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'"], // Для API вызовов
+          fontSrc: ["'self'", 'data:'],
         },
       },
       hsts: {
@@ -93,9 +95,15 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Serve static files for admin panel
-  app.useStaticAssets(join(__dirname, '..', 'public', 'admin'), {
+  // Serve static files for admin panel (assets)
+  app.useStaticAssets(join(__dirname, '..', 'public', 'admin', 'assets'), {
     prefix: '/admin/assets/',
+  });
+
+  // Serve main admin HTML and other static files
+  app.useStaticAssets(join(__dirname, '..', 'public', 'admin'), {
+    prefix: '/admin/',
+    index: false, // Don't auto-serve index.html
   });
 
   // Enable validation pipes with security settings
@@ -108,9 +116,17 @@ async function bootstrap() {
     }),
   );
 
-  // SPA fallback middleware for admin panel
+  // SPA fallback middleware for admin panel - handle /admin and /admin/
+  app.use(/^\/admin\/?$/, (req, res) => {
+    // Redirect /admin to /admin/ for consistency
+    if (req.path === '/admin') {
+      return res.redirect('/admin/');
+    }
+    res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
+  });
+
+  // SPA fallback for other admin routes (except API endpoints)
   app.use(/^\/admin\/(?!users|login|stats|health|assets).*/, (req, res) => {
-    // Serve index.html for all admin routes except API endpoints and assets
     res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
   });
 
