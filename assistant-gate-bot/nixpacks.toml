@@ -26,4 +26,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'npm run start:railway' 
+cmd = 'npm run start:railway' # Force rebuild Mon Jun  9 11:08:10 MSK 2025
