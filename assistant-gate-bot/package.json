@@ -7,8 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npm run build:admin && npm run build:backend",
-    "build:admin": "cd admin-panel && npm ci --no-audit --no-fund && VITE_API_BASE_URL=/admin npm run build",
-    "build:backend": "nest build",
+    "build:admin": "cd admin-panel && npm ci --no-audit --no-fund --silent && npm run build && echo 'Admin panel built successfully'",
+    "build:backend": "nest build && echo 'Backend built successfully'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -19,6 +19,9 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "start:railway": "prisma db push --skip-generate && node dist/main",
+    "validate": "node scripts/validate-env.js",
+    "pre-deploy": "npm run validate && prisma db push --skip-generate",
+    "ready-for-railway": "npm run build && npm run validate && echo '✅ Ready for Railway deployment!'",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -27,7 +30,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "deploy": "prisma db push --skip-generate && npm run start:prod"
+    "deploy": "npm run pre-deploy && npm run start:prod"
   },
   "dependencies": {
     "@nestjs/cli": "^11.0.0",

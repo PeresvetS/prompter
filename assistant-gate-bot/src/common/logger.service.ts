@@ -35,49 +35,36 @@ export class CustomLoggerService implements LoggerService {
       ],
     });
 
-    // В production на Railway используем только консольное логирование
-    // Файловые логи отключены из-за ограничений прав доступа
-    if (
-      process.env.NODE_ENV === 'production' &&
-      process.env.RAILWAY_ENVIRONMENT !== 'production'
-    ) {
-      // Только если мы НЕ на Railway (локальный production)
-      try {
-        // Error logs
-        this.logger.add(
-          new DailyRotateFile({
-            filename: 'logs/error-%DATE%.log',
-            datePattern: 'YYYY-MM-DD',
-            level: 'error',
-            maxSize: '20m',
-            maxFiles: '14d',
-            format: winston.format.combine(
-              winston.format.timestamp(),
-              winston.format.json(),
-            ),
-          }),
-        );
+    // Add file transports for production
+    if (process.env.NODE_ENV === 'production') {
+      // Error logs
+      this.logger.add(
+        new DailyRotateFile({
+          filename: 'logs/error-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          level: 'error',
+          maxSize: '20m',
+          maxFiles: '14d',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json(),
+          ),
+        }),
+      );
 
-        // Combined logs
-        this.logger.add(
-          new DailyRotateFile({
-            filename: 'logs/combined-%DATE%.log',
-            datePattern: 'YYYY-MM-DD',
-            maxSize: '20m',
-            maxFiles: '7d',
-            format: winston.format.combine(
-              winston.format.timestamp(),
-              winston.format.json(),
-            ),
-          }),
-        );
-      } catch (error) {
-        // Если не можем создать файловые логи, продолжаем с консольными
-        console.warn(
-          'Failed to initialize file logging, using console only:',
-          error.message,
-        );
-      }
+      // Combined logs
+      this.logger.add(
+        new DailyRotateFile({
+          filename: 'logs/combined-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          maxSize: '20m',
+          maxFiles: '7d',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json(),
+          ),
+        }),
+      );
     }
   }
 

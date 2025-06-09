@@ -34,17 +34,15 @@ async function bootstrap() {
     );
   }
 
-  // Security headers с поддержкой админ-панели
+  // Security headers
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"], // Для Vite/React
-          scriptSrc: ["'self'", "'unsafe-inline'"], // Для Vite в development
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'https:'],
-          connectSrc: ["'self'"], // Для API вызовов
-          fontSrc: ["'self'", 'data:'],
         },
       },
       hsts: {
@@ -95,15 +93,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Serve static files for admin panel (assets)
-  app.useStaticAssets(join(__dirname, '..', 'public', 'admin', 'assets'), {
-    prefix: '/admin/assets/',
-  });
-
-  // Serve main admin HTML and other static files
+  // Serve static files for admin panel
   app.useStaticAssets(join(__dirname, '..', 'public', 'admin'), {
-    prefix: '/admin/',
-    index: false, // Don't auto-serve index.html
+    prefix: '/admin/assets/',
   });
 
   // Enable validation pipes with security settings
@@ -116,25 +108,24 @@ async function bootstrap() {
     }),
   );
 
-  // SPA fallback middleware for admin panel - handle /admin and /admin/
-  app.use(/^\/admin\/?$/, (req, res) => {
-    // Redirect /admin to /admin/ for consistency
-    if (req.path === '/admin') {
-      return res.redirect('/admin/');
-    }
-    res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
-  });
-
-  // SPA fallback for other admin routes (except API endpoints)
+  // SPA fallback middleware for admin panel
   app.use(/^\/admin\/(?!users|login|stats|health|assets).*/, (req, res) => {
+    // Serve index.html for all admin routes except API endpoints and assets
     res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
   });
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
 
-  logger.log(`🚀 Application is running on: http://localhost:${port}`);
-  logger.log(`📊 Admin panel available at: http://localhost:${port}/admin/`);
+  // Enhanced startup logging
+  logger.log(`🔧 Starting application...`);
+  logger.log(`📦 Node Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`🌐 Port: ${port}`);
+
+  await app.listen(port, '0.0.0.0');
+
+  logger.log(`🚀 Application is running on: http://0.0.0.0:${port}`);
+  logger.log(`📊 Admin panel available at: http://0.0.0.0:${port}/admin/`);
+  logger.log(`❤️  Health check available at: http://0.0.0.0:${port}/health`);
   logger.log(
     `🔒 Security features enabled: Helmet, Rate Limiting, Input Validation`,
     'Bootstrap',
@@ -143,6 +134,9 @@ async function bootstrap() {
   if (process.env.NODE_ENV === 'production') {
     logger.log(`🌐 Production mode: Enhanced security enabled`, 'Bootstrap');
   }
+
+  // Log environment validation results
+  logger.log(`✅ Application startup completed successfully`, 'Bootstrap');
 }
 
 bootstrap().catch((error) => {
